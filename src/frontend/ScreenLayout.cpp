@@ -182,13 +182,17 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Identity(TranslationMtx); // Feature: Quad Screen
 
     // TODO: Find the correct transforms locations
+    // originally set to -256/2, -192/2
 
 
-    M23_Translate(TopScreenMtx, -256/2, -192/2);
-    M23_Translate(BotScreenMtx, -512, -192/2);
+    M23_Translate(TopScreenMtx, -256/2, 0);
+    // M23_Translate(BotScreenMtx,  -256/2, -192/2);
+    M23_Translate(BotScreenMtx, -256/2, 0);
+    // M23_Translate(TopScreenMtx, 0, 0);
+
 
      // Position Kanji screen next to the top screen
-    M23_Translate(KanjiMtx, 0, -192/2); // Adjust the translation values as needed
+    M23_Translate(KanjiMtx, 0, 0); // Adjust the translation values as needed
     // Position Translation screen next to the bottom screen
     M23_Translate(TranslationMtx, 0, -192/2); // Adjust the translation values as needed
 
@@ -196,21 +200,22 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Scale(BotScreenMtx, botAspect, 1);
 
 
+    // Let's disable rotation for now
     // rotation
-    {
-        float rotmtx[6];
-        M23_Identity(rotmtx);
+    // {
+    //     float rotmtx[6];
+    //     M23_Identity(rotmtx);
 
-        M23_RotateFast(rotmtx, rotation);
-        M23_Multiply(TopScreenMtx, rotmtx, TopScreenMtx);
-        M23_Multiply(BotScreenMtx, rotmtx, BotScreenMtx);
-        M23_Multiply(HybScreenMtx, rotmtx, HybScreenMtx);
+    //     M23_RotateFast(rotmtx, rotation);
+    //     M23_Multiply(TopScreenMtx, rotmtx, TopScreenMtx);
+    //     M23_Multiply(BotScreenMtx, rotmtx, BotScreenMtx);
+    //     M23_Multiply(HybScreenMtx, rotmtx, HybScreenMtx);
 
-        M23_Transform(TopScreenMtx, refpoints[0][0], refpoints[0][1]);
-        M23_Transform(TopScreenMtx, refpoints[1][0], refpoints[1][1]);
-        M23_Transform(BotScreenMtx, refpoints[2][0], refpoints[2][1]);
-        M23_Transform(BotScreenMtx, refpoints[3][0], refpoints[3][1]);
-    }
+    //     M23_Transform(TopScreenMtx, refpoints[0][0], refpoints[0][1]);
+    //     M23_Transform(TopScreenMtx, refpoints[1][0], refpoints[1][1]);
+    //     M23_Transform(BotScreenMtx, refpoints[2][0], refpoints[2][1]);
+    //     M23_Transform(BotScreenMtx, refpoints[3][0], refpoints[3][1]);
+    // }
 
 
 
@@ -464,31 +469,31 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     // prepare a 'reverse' matrix for the touchscreen
     // this matrix undoes the transforms applied to the bottom screen
     // and can be used to calculate touchscreen coords from host screen coords
-    if (BotEnable)
-    {
-        M23_Identity(TouchMtx);
+    // if (BotEnable)
+    // {
+    //     M23_Identity(TouchMtx);
 
-        M23_Translate(TouchMtx, -botTrans[2], -botTrans[3]);
-        M23_Scale(TouchMtx, 1.f / botScale);
-        M23_Translate(TouchMtx, -botTrans[0], -botTrans[1]);
+    //     M23_Translate(TouchMtx, -botTrans[2], -botTrans[3]);
+    //     M23_Scale(TouchMtx, 1.f / botScale);
+    //     M23_Translate(TouchMtx, -botTrans[0], -botTrans[1]);
 
-        float rotmtx[6];
-        M23_Identity(rotmtx);
-        M23_RotateFast(rotmtx, (4-rotation) & 3);
-        M23_Multiply(TouchMtx, rotmtx, TouchMtx);
+    //     float rotmtx[6];
+    //     M23_Identity(rotmtx);
+    //     M23_RotateFast(rotmtx, (4-rotation) & 3);
+    //     M23_Multiply(TouchMtx, rotmtx, TouchMtx);
 
-        M23_Scale(TouchMtx, 1.f/botAspect, 1);
-        M23_Translate(TouchMtx, 256/2, 192/2);
+    //     M23_Scale(TouchMtx, 1.f/botAspect, 1);
+    //     M23_Translate(TouchMtx, 256/2, 192/2);
 
-        if (HybEnable && HybScreen == 1)
-        {
-            M23_Identity(HybTouchMtx);
+    //     if (HybEnable && HybScreen == 1)
+    //     {
+    //         M23_Identity(HybTouchMtx);
 
-            M23_Translate(HybTouchMtx, -hybTrans[0], -hybTrans[1]);
-            M23_Scale(HybTouchMtx, 1.f/hybScale);
-            M23_Multiply(HybTouchMtx, rotmtx, HybTouchMtx);
-        }
-    }
+    //         M23_Translate(HybTouchMtx, -hybTrans[0], -hybTrans[1]);
+    //         M23_Scale(HybTouchMtx, 1.f/hybScale);
+    //         M23_Multiply(HybTouchMtx, rotmtx, HybTouchMtx);
+    //     }
+    // }
 }
 
 
