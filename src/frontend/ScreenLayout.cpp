@@ -113,9 +113,12 @@ ScreenLayout::ScreenLayout()
     M23_Identity(HybScreenMtx);
     M23_Identity(TouchMtx);
     M23_Identity(HybTouchMtx);
+    M23_Identity(KanjiMtx); // Feature: Quad Screen
+    M23_Identity(TranslationMtx); // Feature: Quad Screen
     TopEnable = true;
     BotEnable = true;
     HybEnable = false;
+    QuadEnable = false; // Feature: Quad Screen
     HybScreen = 0;
     HybPrevTouchScreen = 0;
 }
@@ -159,6 +162,8 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Identity(TopScreenMtx);
     M23_Identity(BotScreenMtx);
     M23_Identity(HybScreenMtx);
+    M23_Identity(KanjiMtx); // Feature: Quad Screen
+    M23_Identity(TranslationMtx); // Feature: Quad Screen
 
     M23_Translate(TopScreenMtx, -256/2, -192/2);
     M23_Translate(BotScreenMtx, -256/2, -192/2);

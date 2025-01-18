@@ -25,6 +25,7 @@ enum ScreenLayoutType
     screenLayout_Vertical,
     screenLayout_Horizontal,
     screenLayout_Hybrid,
+    screenLayout_Quad, // Feature: Quad Screen
     screenLayout_MAX,
 };
 
@@ -92,11 +93,15 @@ private:
     float TopScreenMtx[6];
     float BotScreenMtx[6];
     float HybScreenMtx[6];
+    float KanjiMtx[6]; // Feature: Quad Screen
+    float TranslationMtx[6]; // Feature: Quad Screen
+
     float TouchMtx[6];
     float HybTouchMtx[6];
     bool TopEnable;
     bool BotEnable;
     bool HybEnable;
+    bool QuadEnable; // Feature: Quad Screen
     int HybScreen;
     int HybPrevTouchScreen; // 0:unknown, 1:buttom screen, 2:hybrid screen
 };
