@@ -49,7 +49,7 @@ enum ScreenSizing
     screenSizing_MAX,
 };
 
-const int kMaxScreenTransforms = 3;
+const int kMaxScreenTransforms = 5;
 
 class ScreenLayout
 {

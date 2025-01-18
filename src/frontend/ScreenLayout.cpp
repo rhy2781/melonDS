@@ -143,12 +143,28 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         HybPrevTouchScreen = 0;
     }
 
-    float refpoints[6][2] =
+    QuadEnable = screenLayout == 4; // Feature: Quad Screen
+    if (QuadEnable)
     {
+        screenLayout = screenLayout_Natural;
+        sizing = screenSizing_Even;
+        // HybScreen = swapScreens ? 1 : 0;
+        // swapScreens = false;
+        topAspect = botAspect = 1;
+        // HybPrevTouchScreen = 0;
+    }
+
+
+    // reference points for the 4 corners of the screen
+    float refpoints[10][2] =
+    {
+        {0, 0}, {256, 192}, // Top screen
+        {0, 0}, {256, 192}, // 
         {0, 0}, {256, 192},
-        {0, 0}, {256, 192},
-        {0, 0}, {256, 192}
+        {256, 0}, {512, 192}, // Feature: Quad Screen - Kanji Screen
+        {256, 192}, {512, 384} // Feature: Quad Screen - Translation Screen
     };
+
 
     int layout = screenLayout == screenLayout_Natural
         ? rotation % 2
@@ -165,11 +181,20 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Identity(KanjiMtx); // Feature: Quad Screen
     M23_Identity(TranslationMtx); // Feature: Quad Screen
 
+    // TODO: Find the correct transforms locations
+
+
     M23_Translate(TopScreenMtx, -256/2, -192/2);
-    M23_Translate(BotScreenMtx, -256/2, -192/2);
+    M23_Translate(BotScreenMtx, -512, -192/2);
+
+     // Position Kanji screen next to the top screen
+    M23_Translate(KanjiMtx, 0, -192/2); // Adjust the translation values as needed
+    // Position Translation screen next to the bottom screen
+    M23_Translate(TranslationMtx, 0, -192/2); // Adjust the translation values as needed
 
     M23_Scale(TopScreenMtx, topAspect, 1);
     M23_Scale(BotScreenMtx, botAspect, 1);
+
 
     // rotation
     {
@@ -187,9 +212,15 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         M23_Transform(BotScreenMtx, refpoints[3][0], refpoints[3][1]);
     }
 
+
+
+
+
+
     int posRefPointOffset = 0;
     int posRefPointCount = HybEnable ? 6 : 4;
 
+    // If we are using only top screen or bottom screen
     if (sizing == screenSizing_TopOnly || sizing == screenSizing_BotOnly)
     {
         float* mtx = sizing == screenSizing_TopOnly ? TopScreenMtx : BotScreenMtx;
@@ -216,6 +247,7 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         posRefPointOffset = primOffset;
         posRefPointCount = 2;
     }
+    // Otherwise top and bottom are enabled as true
     else
     {
         TopEnable = BotEnable = true;
@@ -394,6 +426,10 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         }
     }
 
+
+
+
+
     // position
     {
         float minX = refpoints[posRefPointOffset][0], maxX = minX;
@@ -420,6 +456,10 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         botTrans[2] += tx; botTrans[3] += ty;
         hybTrans[0] += tx; hybTrans[1] += ty;
     }
+
+
+
+
 
     // prepare a 'reverse' matrix for the touchscreen
     // this matrix undoes the transforms applied to the bottom screen
@@ -450,6 +490,18 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 int ScreenLayout::GetScreenTransforms(float* out, int* kind)
 {
