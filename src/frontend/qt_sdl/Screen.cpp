@@ -215,12 +215,18 @@ QSize ScreenPanel::screenGetMinSize(int factor = 1)
         else
             return QSize(w+gap+w, h);
     }
-    else // hybrid
+    else if(screenLayout == screenLayout_Hybrid)
     {
         if (isHori)
             return QSize(h+gap+h, 3*w + (int)ceil((4*gap) / 3.0));
         else
             return QSize(3*w + (int)ceil((4*gap) / 3.0), h+gap+h);
+    }
+    else{
+        if (isHori)
+            return QSize(h+gap+h, w);
+        else
+            return QSize(w, h+gap+h);
     }
 }
 
@@ -781,7 +787,7 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
     QPainter painter(this);
 
     // fill background
-    painter.fillRect(event->rect(), QColor::fromRgb(0, 0, 100));
+    painter.fillRect(event->rect(), QColor::fromRgb(0, 0, 0));
 
     auto emuThread = emuInstance->getEmuThread();
 

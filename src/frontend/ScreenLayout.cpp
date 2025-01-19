@@ -173,20 +173,31 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     float botTrans[4] = {0};
     float hybTrans[2] = {0};
 
-    M23_Identity(TopScreenMtx);
-    M23_Identity(BotScreenMtx);
-    M23_Identity(HybScreenMtx);
-    M23_Identity(KanjiMtx); // Feature: Quad Screen
-    M23_Identity(TranslationMtx); // Feature: Quad Screen
 
-    M23_Translate(TopScreenMtx, 0, 0);
-    M23_Translate(BotScreenMtx,  0, 192);
-    M23_Translate(KanjiMtx, 256, 0);
-    M23_Translate(TranslationMtx, 256, 192);
+
 
     float scaleX = static_cast<float>(screenWidth) / (256 * 2); // Assuming two screens side by side
     float scaleY = static_cast<float>(screenHeight) / (192 * 2); // Assuming two screens stacked vertically
     float scale = std::min(scaleX, scaleY); // Use the smaller scaling factor to maintain aspect ratio
+
+    // Calculate offsets to center the entire 2x2 grid
+    float totalWidth = 256 * 2 * scale;  // Total width of the scaled grid
+    float totalHeight = 192 * 2 * scale; // Total height of the scaled grid
+    float offsetX = (screenWidth - totalWidth) / 2 / scale;
+    float offsetY = (screenHeight - totalHeight) / 2 / scale;
+
+    // Apply transformations to position each screen in the grid
+    M23_Identity(TopScreenMtx);
+    M23_Identity(BotScreenMtx);
+    M23_Identity(KanjiMtx);
+    M23_Identity(TranslationMtx);
+
+    M23_Translate(TopScreenMtx, offsetX, offsetY );                           // Top-left
+    M23_Translate(BotScreenMtx, offsetX , 192 + offsetY);                  // Bottom-left
+    M23_Translate(KanjiMtx, 256 + offsetX , offsetY);
+    M23_Translate(TranslationMtx, 256 + offsetX, 192 + offsetY);        // Bottom-right
+
+
 
     M23_Scale(TopScreenMtx, scale, scale);
     M23_Scale(BotScreenMtx, scale, scale);
@@ -194,7 +205,7 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Scale(TranslationMtx, scale, scale);
 
 
-
+ 
     // Let's disable rotation for now
     // rotation
     // {
@@ -211,7 +222,6 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     //     M23_Transform(BotScreenMtx, refpoints[2][0], refpoints[2][1]);
     //     M23_Transform(BotScreenMtx, refpoints[3][0], refpoints[3][1]);
     // }
-
 
 
 
