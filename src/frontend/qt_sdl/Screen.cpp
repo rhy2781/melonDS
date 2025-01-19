@@ -748,11 +748,15 @@ void ScreenPanel::calcSplashLayout()
 
 ScreenPanelNative::ScreenPanelNative(QWidget* parent) : ScreenPanel(parent)
 {
-    screen[0] = QImage(256, 192, QImage::Format_RGB32);
-    screen[1] = QImage(256, 192, QImage::Format_RGB32);
+    screen[0] = QImage(256, 192, QImage::Format_RGB32); // top screen
+    screen[1] = QImage(256, 192, QImage::Format_RGB32); // bottom
+    screen[2] = QImage(256, 192, QImage::Format_RGB32); // kanji
+    screen[3] = QImage(256, 192, QImage::Format_RGB32); // translation
 
     screenTrans[0].reset();
     screenTrans[1].reset();
+    screenTrans[2].reset();
+    screenTrans[3].reset();
 }
 
 ScreenPanelNative::~ScreenPanelNative()
@@ -777,7 +781,7 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
     QPainter painter(this);
 
     // fill background
-    painter.fillRect(event->rect(), QColor::fromRgb(0, 0, 0));
+    painter.fillRect(event->rect(), QColor::fromRgb(0, 0, 100));
 
     auto emuThread = emuInstance->getEmuThread();
 
@@ -797,6 +801,31 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
 
         memcpy(screen[0].scanLine(0), nds->GPU.Framebuffer[frontbuf][0].get(), 256 * 192 * 4);
         memcpy(screen[1].scanLine(0), nds->GPU.Framebuffer[frontbuf][1].get(), 256 * 192 * 4);
+        
+        // Create a QImage for the Kanji screen
+        QImage kanjiScreen(256, 192, QImage::Format_RGB32);
+        QPainter kanjiPainter(&kanjiScreen);
+        kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
+        kanjiPainter.setPen(Qt::black);
+        kanjiPainter.setFont(QFont("Arial", 24));
+        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, "Kanji Screen");
+
+        // Copy the Kanji screen data to the screen buffer
+        memcpy(screen[2].scanLine(0), kanjiScreen.bits(), 256 * 192 * 4);
+
+
+
+        QPainter translationPainter(&screen[3]);
+        translationPainter.fillRect(screen[3].rect(), Qt::lightGray);
+        translationPainter.setPen(Qt::black);
+        translationPainter.setFont(QFont("Arial", 24));
+        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, "Translation Screen");
+
+
+
+
+
+
         emuThread->frontBufferLock.unlock();
 
         QRect screenrc(0, 0, 256, 192);

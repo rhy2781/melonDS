@@ -167,7 +167,7 @@ protected:
 private:
     void setupScreenLayout() override;
 
-    QImage screen[2];
+    QImage screen[4];
     QTransform screenTrans[kMaxScreenTransforms];
 };
 

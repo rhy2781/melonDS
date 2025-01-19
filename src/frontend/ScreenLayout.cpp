@@ -156,13 +156,11 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
 
 
     // reference points for the 4 corners of the screen
-    float refpoints[10][2] =
+    float refpoints[6][2] =
     {
-        {0, 0}, {256, 192}, // Top screen
-        {0, 0}, {256, 192}, // 
         {0, 0}, {256, 192},
-        {256, 0}, {512, 192}, // Feature: Quad Screen - Kanji Screen
-        {256, 192}, {512, 384} // Feature: Quad Screen - Translation Screen
+        {0, 0}, {256, 192},
+        {0, 0}, {256, 192},
     };
 
 
@@ -181,23 +179,20 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
     M23_Identity(KanjiMtx); // Feature: Quad Screen
     M23_Identity(TranslationMtx); // Feature: Quad Screen
 
-    // TODO: Find the correct transforms locations
-    // originally set to -256/2, -192/2
+    M23_Translate(TopScreenMtx, 0, 0);
+    M23_Translate(BotScreenMtx,  0, 192);
+    M23_Translate(KanjiMtx, 256, 0);
+    M23_Translate(TranslationMtx, 256, 192);
 
+    float scaleX = static_cast<float>(screenWidth) / (256 * 2); // Assuming two screens side by side
+    float scaleY = static_cast<float>(screenHeight) / (192 * 2); // Assuming two screens stacked vertically
+    float scale = std::min(scaleX, scaleY); // Use the smaller scaling factor to maintain aspect ratio
 
-    M23_Translate(TopScreenMtx, -256/2, 0);
-    // M23_Translate(BotScreenMtx,  -256/2, -192/2);
-    M23_Translate(BotScreenMtx, -256/2, 0);
-    // M23_Translate(TopScreenMtx, 0, 0);
+    M23_Scale(TopScreenMtx, scale, scale);
+    M23_Scale(BotScreenMtx, scale, scale);
+    M23_Scale(KanjiMtx, scale, scale);
+    M23_Scale(TranslationMtx, scale, scale);
 
-
-     // Position Kanji screen next to the top screen
-    M23_Translate(KanjiMtx, 0, 0); // Adjust the translation values as needed
-    // Position Translation screen next to the bottom screen
-    M23_Translate(TranslationMtx, 0, -192/2); // Adjust the translation values as needed
-
-    M23_Scale(TopScreenMtx, topAspect, 1);
-    M23_Scale(BotScreenMtx, botAspect, 1);
 
 
     // Let's disable rotation for now
@@ -221,246 +216,245 @@ void ScreenLayout::Setup(int screenWidth, int screenHeight,
 
 
 
-
     int posRefPointOffset = 0;
     int posRefPointCount = HybEnable ? 6 : 4;
 
     // If we are using only top screen or bottom screen
-    if (sizing == screenSizing_TopOnly || sizing == screenSizing_BotOnly)
-    {
-        float* mtx = sizing == screenSizing_TopOnly ? TopScreenMtx : BotScreenMtx;
-        int primOffset = sizing == screenSizing_TopOnly ? 0 : 2;
-        int secOffset = sizing == screenSizing_BotOnly ? 2 : 0;
+    // if (sizing == screenSizing_TopOnly || sizing == screenSizing_BotOnly)
+    // {
+    //     float* mtx = sizing == screenSizing_TopOnly ? TopScreenMtx : BotScreenMtx;
+    //     int primOffset = sizing == screenSizing_TopOnly ? 0 : 2;
+    //     int secOffset = sizing == screenSizing_BotOnly ? 2 : 0;
 
-        float hSize = fabsf(refpoints[primOffset][0] - refpoints[primOffset+1][0]);
-        float vSize = fabsf(refpoints[primOffset][1] - refpoints[primOffset+1][1]);
+    //     float hSize = fabsf(refpoints[primOffset][0] - refpoints[primOffset+1][0]);
+    //     float vSize = fabsf(refpoints[primOffset][1] - refpoints[primOffset+1][1]);
 
-        float scale = std::min(screenWidth / hSize, screenHeight / vSize);
-        if (integerScale)
-            scale = floorf(scale);
+    //     float scale = std::min(screenWidth / hSize, screenHeight / vSize);
+    //     if (integerScale)
+    //         scale = floorf(scale);
 
-        TopEnable = sizing == screenSizing_TopOnly;
-        BotEnable = sizing == screenSizing_BotOnly;
-        botScale = scale;
+    //     TopEnable = sizing == screenSizing_TopOnly;
+    //     BotEnable = sizing == screenSizing_BotOnly;
+    //     botScale = scale;
 
-        M23_Scale(mtx, scale);
-        refpoints[primOffset][0] *= scale;
-        refpoints[primOffset][1] *= scale;
-        refpoints[primOffset+1][0] *= scale;
-        refpoints[primOffset+1][1] *= scale;
+    //     M23_Scale(mtx, scale);
+    //     refpoints[primOffset][0] *= scale;
+    //     refpoints[primOffset][1] *= scale;
+    //     refpoints[primOffset+1][0] *= scale;
+    //     refpoints[primOffset+1][1] *= scale;
 
-        posRefPointOffset = primOffset;
-        posRefPointCount = 2;
-    }
+    //     posRefPointOffset = primOffset;
+    //     posRefPointCount = 2;
+    // }
     // Otherwise top and bottom are enabled as true
-    else
-    {
-        TopEnable = BotEnable = true;
+    // else
+    // {
+    //     TopEnable = BotEnable = true;
 
-        // move screens apart
-        {
-            int idx = layout == 0 ? 1 : 0;
+    //     // move screens apart
+    //     {
+    //         int idx = layout == 0 ? 1 : 0;
 
-            bool moveV = rotation % 2 == layout;
+    //         bool moveV = rotation % 2 == layout;
 
-            float offsetBot = (moveV ? 192.0 : 256.0 * botAspect) / 2.0 + screenGap / 2.0;
-            float offsetTop = -((moveV ? 192.0 : 256.0 * topAspect) / 2.0 + screenGap / 2.0);
+    //         float offsetBot = (moveV ? 192.0 : 256.0 * botAspect) / 2.0 + screenGap / 2.0;
+    //         float offsetTop = -((moveV ? 192.0 : 256.0 * topAspect) / 2.0 + screenGap / 2.0);
 
-            if ((rotation == 1 || rotation == 2) ^ swapScreens)
-            {
-                offsetTop *= -1;
-                offsetBot *= -1;
-            }
+    //         if ((rotation == 1 || rotation == 2) ^ swapScreens)
+    //         {
+    //             offsetTop *= -1;
+    //             offsetBot *= -1;
+    //         }
 
-            M23_Translate(TopScreenMtx, (idx==0)?offsetTop:0, (idx==1)?offsetTop:0);
-            M23_Translate(BotScreenMtx, (idx==0)?offsetBot:0, (idx==1)?offsetBot:0);
+    //         M23_Translate(TopScreenMtx, (idx==0)?offsetTop:0, (idx==1)?offsetTop:0);
+    //         M23_Translate(BotScreenMtx, (idx==0)?offsetBot:0, (idx==1)?offsetBot:0);
 
-            refpoints[0][idx] += offsetTop;
-            refpoints[1][idx] += offsetTop;
-            refpoints[2][idx] += offsetBot;
-            refpoints[3][idx] += offsetBot;
+    //         refpoints[0][idx] += offsetTop;
+    //         refpoints[1][idx] += offsetTop;
+    //         refpoints[2][idx] += offsetBot;
+    //         refpoints[3][idx] += offsetBot;
 
-            botTrans[idx] = offsetBot;
-        }
+    //         botTrans[idx] = offsetBot;
+    //     }
 
-        // scale
-        {
-            if (sizing == screenSizing_Even)
-            {
-                float minX = refpoints[0][0], maxX = minX;
-                float minY = refpoints[0][1], maxY = minY;
+    //     // scale
+    //     {
+    //         if (sizing == screenSizing_Even)
+    //         {
+    //             float minX = refpoints[0][0], maxX = minX;
+    //             float minY = refpoints[0][1], maxY = minY;
 
-                for (int i = 1; i < 4; i++)
-                {
-                    minX = std::min(minX, refpoints[i][0]);
-                    minY = std::min(minY, refpoints[i][1]);
-                    maxX = std::max(maxX, refpoints[i][0]);
-                    maxY = std::max(maxY, refpoints[i][1]);
-                }
+    //             for (int i = 1; i < 4; i++)
+    //             {
+    //                 minX = std::min(minX, refpoints[i][0]);
+    //                 minY = std::min(minY, refpoints[i][1]);
+    //                 maxX = std::max(maxX, refpoints[i][0]);
+    //                 maxY = std::max(maxY, refpoints[i][1]);
+    //             }
 
-                float hSize = maxX - minX;
-                float vSize = maxY - minY;
+    //             float hSize = maxX - minX;
+    //             float vSize = maxY - minY;
 
-                if (HybEnable)
-                {
-                    hybScale = layout == 0
-                        ? (4 * vSize) / (3 * hSize)
-                        : (4 * hSize) / (3 * vSize);
-                    if (layout == 0)
-                        hSize += (vSize * 4) / 3;
-                    else
-                        vSize += (hSize * 4) / 3;
-                }
+    //             if (HybEnable)
+    //             {
+    //                 hybScale = layout == 0
+    //                     ? (4 * vSize) / (3 * hSize)
+    //                     : (4 * hSize) / (3 * vSize);
+    //                 if (layout == 0)
+    //                     hSize += (vSize * 4) / 3;
+    //                 else
+    //                     vSize += (hSize * 4) / 3;
+    //             }
 
-                // scale evenly
-                float scale = std::min(screenWidth / hSize, screenHeight / vSize);
+    //             // scale evenly
+    //             float scale = std::min(screenWidth / hSize, screenHeight / vSize);
 
-                if (integerScale)
-                    scale = floor(scale);
+    //             if (integerScale)
+    //                 scale = floor(scale);
 
-                hybScale *= scale;
+    //             hybScale *= scale;
 
-                M23_Scale(TopScreenMtx, scale);
-                M23_Scale(BotScreenMtx, scale);
-                M23_Scale(HybScreenMtx, hybScale);
+    //             M23_Scale(TopScreenMtx, scale);
+    //             M23_Scale(BotScreenMtx, scale);
+    //             M23_Scale(HybScreenMtx, hybScale);
 
-                for (int i = 0; i < 4; i++)
-                {
-                    refpoints[i][0] *= scale;
-                    refpoints[i][1] *= scale;
-                }
+    //             for (int i = 0; i < 4; i++)
+    //             {
+    //                 refpoints[i][0] *= scale;
+    //                 refpoints[i][1] *= scale;
+    //             }
 
-                botScale = scale;
+    //             botScale = scale;
 
-                // move screens aside
-                if (HybEnable)
-                {
-                    float hybWidth = layout == 0
-                        ? (scale * vSize * 4) / 3
-                        : (scale * hSize * 4) / 3;
+    //             // move screens aside
+    //             if (HybEnable)
+    //             {
+    //                 float hybWidth = layout == 0
+    //                     ? (scale * vSize * 4) / 3
+    //                     : (scale * hSize * 4) / 3;
 
-                    if (rotation > screenRot_90Deg)
-                        hybWidth *= -1;
+    //                 if (rotation > screenRot_90Deg)
+    //                     hybWidth *= -1;
 
-                    M23_Translate(TopScreenMtx, (layout==0)?hybWidth:0, (layout==1)?hybWidth:0);
-                    M23_Translate(BotScreenMtx, (layout==0)?hybWidth:0, (layout==1)?hybWidth:0);
-                    refpoints[0][layout] += hybWidth;
-                    refpoints[1][layout] += hybWidth;
-                    refpoints[2][layout] += hybWidth;
-                    refpoints[3][layout] += hybWidth;
+    //                 M23_Translate(TopScreenMtx, (layout==0)?hybWidth:0, (layout==1)?hybWidth:0);
+    //                 M23_Translate(BotScreenMtx, (layout==0)?hybWidth:0, (layout==1)?hybWidth:0);
+    //                 refpoints[0][layout] += hybWidth;
+    //                 refpoints[1][layout] += hybWidth;
+    //                 refpoints[2][layout] += hybWidth;
+    //                 refpoints[3][layout] += hybWidth;
 
-                    botTrans[2+layout] += hybWidth;
+    //                 botTrans[2+layout] += hybWidth;
 
-                    hybTrans[0] = scale * (rotation == screenRot_0Deg || rotation == screenRot_270Deg ? minX : maxX);
-                    hybTrans[1] = scale * (rotation == screenRot_0Deg || rotation == screenRot_90Deg ? minY : maxY);
-                    M23_Translate(HybScreenMtx, hybTrans[0], hybTrans[1]);
+    //                 hybTrans[0] = scale * (rotation == screenRot_0Deg || rotation == screenRot_270Deg ? minX : maxX);
+    //                 hybTrans[1] = scale * (rotation == screenRot_0Deg || rotation == screenRot_90Deg ? minY : maxY);
+    //                 M23_Translate(HybScreenMtx, hybTrans[0], hybTrans[1]);
 
-                    M23_Transform(HybScreenMtx, refpoints[4][0], refpoints[4][1]);
-                    M23_Transform(HybScreenMtx, refpoints[5][0], refpoints[5][1]);
-                }
-            }
-            else
-            {
-                int primOffset = (sizing == screenSizing_EmphTop) ? 0 : 2;
-                int secOffset = (sizing == screenSizing_EmphTop) ? 2 : 0;
-                float* primMtx = (sizing == screenSizing_EmphTop) ? TopScreenMtx : BotScreenMtx;
-                float* secMtx = (sizing == screenSizing_EmphTop) ? BotScreenMtx : TopScreenMtx;
+    //                 M23_Transform(HybScreenMtx, refpoints[4][0], refpoints[4][1]);
+    //                 M23_Transform(HybScreenMtx, refpoints[5][0], refpoints[5][1]);
+    //             }
+    //         }
+    //         else
+    //         {
+    //             int primOffset = (sizing == screenSizing_EmphTop) ? 0 : 2;
+    //             int secOffset = (sizing == screenSizing_EmphTop) ? 2 : 0;
+    //             float* primMtx = (sizing == screenSizing_EmphTop) ? TopScreenMtx : BotScreenMtx;
+    //             float* secMtx = (sizing == screenSizing_EmphTop) ? BotScreenMtx : TopScreenMtx;
 
-                float primMinX = refpoints[primOffset][0], primMaxX = primMinX;
-                float primMinY = refpoints[primOffset][1], primMaxY = primMinY;
-                float secMinX = refpoints[secOffset][0], secMaxX = secMinX;
-                float secMinY = refpoints[secOffset][1], secMaxY = secMinY;
+    //             float primMinX = refpoints[primOffset][0], primMaxX = primMinX;
+    //             float primMinY = refpoints[primOffset][1], primMaxY = primMinY;
+    //             float secMinX = refpoints[secOffset][0], secMaxX = secMinX;
+    //             float secMinY = refpoints[secOffset][1], secMaxY = secMinY;
 
-                primMinX = std::min(primMinX, refpoints[primOffset+1][0]);
-                primMinY = std::min(primMinY, refpoints[primOffset+1][1]);
-                primMaxX = std::max(primMaxX, refpoints[primOffset+1][0]);
-                primMaxY = std::max(primMaxY, refpoints[primOffset+1][1]);
+    //             primMinX = std::min(primMinX, refpoints[primOffset+1][0]);
+    //             primMinY = std::min(primMinY, refpoints[primOffset+1][1]);
+    //             primMaxX = std::max(primMaxX, refpoints[primOffset+1][0]);
+    //             primMaxY = std::max(primMaxY, refpoints[primOffset+1][1]);
 
-                secMinX = std::min(secMinX, refpoints[secOffset+1][0]);
-                secMinY = std::min(secMinY, refpoints[secOffset+1][1]);
-                secMaxX = std::max(secMaxX, refpoints[secOffset+1][0]);
-                secMaxY = std::max(secMaxY, refpoints[secOffset+1][1]);
+    //             secMinX = std::min(secMinX, refpoints[secOffset+1][0]);
+    //             secMinY = std::min(secMinY, refpoints[secOffset+1][1]);
+    //             secMaxX = std::max(secMaxX, refpoints[secOffset+1][0]);
+    //             secMaxY = std::max(secMaxY, refpoints[secOffset+1][1]);
 
-                float primHSize = layout == 1 ? std::max(primMaxX, -primMinX) : primMaxX - primMinX;
-                float primVSize = layout == 0 ? std::max(primMaxY, -primMinY) : primMaxY - primMinY;
+    //             float primHSize = layout == 1 ? std::max(primMaxX, -primMinX) : primMaxX - primMinX;
+    //             float primVSize = layout == 0 ? std::max(primMaxY, -primMinY) : primMaxY - primMinY;
 
-                float secHSize = layout == 1 ? std::max(secMaxX, -secMinX) : secMaxX - secMinX;
-                float secVSize = layout == 0 ? std::max(secMaxY, -secMinY) : secMaxY - secMinY;
+    //             float secHSize = layout == 1 ? std::max(secMaxX, -secMinX) : secMaxX - secMinX;
+    //             float secVSize = layout == 0 ? std::max(secMaxY, -secMinY) : secMaxY - secMinY;
 
-                float primScale = std::min(screenWidth / primHSize, screenHeight / primVSize);
-                float secScale = 1.f;
+    //             float primScale = std::min(screenWidth / primHSize, screenHeight / primVSize);
+    //             float secScale = 1.f;
 
-                if (integerScale)
-                    primScale = floorf(primScale);
+    //             if (integerScale)
+    //                 primScale = floorf(primScale);
 
-                if (layout == 0)
-                {
-                    if (screenHeight - primVSize * primScale < secVSize)
-                        primScale = std::min(screenWidth / primHSize, (screenHeight - secVSize) / primVSize);
-                    else
-                        secScale = std::min((screenHeight - primVSize * primScale) / secVSize, screenWidth / secHSize);
-                }
-                else
-                {
-                    if (screenWidth - primHSize * primScale < secHSize)
-                        primScale = std::min((screenWidth - secHSize) / primHSize, screenHeight / primVSize);
-                    else
-                        secScale = std::min((screenWidth - primHSize * primScale) / secHSize, screenHeight / secVSize);
-                }
+    //             if (layout == 0)
+    //             {
+    //                 if (screenHeight - primVSize * primScale < secVSize)
+    //                     primScale = std::min(screenWidth / primHSize, (screenHeight - secVSize) / primVSize);
+    //                 else
+    //                     secScale = std::min((screenHeight - primVSize * primScale) / secVSize, screenWidth / secHSize);
+    //             }
+    //             else
+    //             {
+    //                 if (screenWidth - primHSize * primScale < secHSize)
+    //                     primScale = std::min((screenWidth - secHSize) / primHSize, screenHeight / primVSize);
+    //                 else
+    //                     secScale = std::min((screenWidth - primHSize * primScale) / secHSize, screenHeight / secVSize);
+    //             }
 
-                if (integerScale)
-                {
-                    primScale = floorf(primScale);
-                    secScale = floorf(secScale);
-                }
+    //             if (integerScale)
+    //             {
+    //                 primScale = floorf(primScale);
+    //                 secScale = floorf(secScale);
+    //             }
 
-                M23_Scale(primMtx, primScale);
-                M23_Scale(secMtx, secScale);
+    //             M23_Scale(primMtx, primScale);
+    //             M23_Scale(secMtx, secScale);
 
-                refpoints[primOffset+0][0] *= primScale;
-                refpoints[primOffset+0][1] *= primScale;
-                refpoints[primOffset+1][0] *= primScale;
-                refpoints[primOffset+1][1] *= primScale;
-                refpoints[secOffset+0][0] *= secScale;
-                refpoints[secOffset+0][1] *= secScale;
-                refpoints[secOffset+1][0] *= secScale;
-                refpoints[secOffset+1][1] *= secScale;
+    //             refpoints[primOffset+0][0] *= primScale;
+    //             refpoints[primOffset+0][1] *= primScale;
+    //             refpoints[primOffset+1][0] *= primScale;
+    //             refpoints[primOffset+1][1] *= primScale;
+    //             refpoints[secOffset+0][0] *= secScale;
+    //             refpoints[secOffset+0][1] *= secScale;
+    //             refpoints[secOffset+1][0] *= secScale;
+    //             refpoints[secOffset+1][1] *= secScale;
 
-                botScale = (sizing == screenSizing_EmphTop) ? secScale : primScale;
-            }
-        }
-    }
+    //             botScale = (sizing == screenSizing_EmphTop) ? secScale : primScale;
+    //         }
+    //     }
+    // }
 
 
 
 
 
     // position
-    {
-        float minX = refpoints[posRefPointOffset][0], maxX = minX;
-        float minY = refpoints[posRefPointOffset][1], maxY = minY;
+    // {
+    //     float minX = refpoints[posRefPointOffset][0], maxX = minX;
+    //     float minY = refpoints[posRefPointOffset][1], maxY = minY;
 
-        for (int i = posRefPointOffset + 1; i < posRefPointOffset + posRefPointCount; i++)
-        {
-            minX = std::min(minX, refpoints[i][0]);
-            minY = std::min(minY, refpoints[i][1]);
-            maxX = std::max(maxX, refpoints[i][0]);
-            maxY = std::max(maxY, refpoints[i][1]);
-        }
+    //     for (int i = posRefPointOffset + 1; i < posRefPointOffset + posRefPointCount; i++)
+    //     {
+    //         minX = std::min(minX, refpoints[i][0]);
+    //         minY = std::min(minY, refpoints[i][1]);
+    //         maxX = std::max(maxX, refpoints[i][0]);
+    //         maxY = std::max(maxY, refpoints[i][1]);
+    //     }
 
-        float width = maxX - minX;
-        float height = maxY - minY;
+    //     float width = maxX - minX;
+    //     float height = maxY - minY;
 
-        float tx = (screenWidth/2) - (width/2) - minX;
-        float ty = (screenHeight/2) - (height/2) - minY;
+    //     float tx = (screenWidth/2) - (width/2) - minX;
+    //     float ty = (screenHeight/2) - (height/2) - minY;
 
-        M23_Translate(TopScreenMtx, tx, ty);
-        M23_Translate(BotScreenMtx, tx, ty);
-        M23_Translate(HybScreenMtx, tx, ty);
+    //     M23_Translate(TopScreenMtx, tx, ty);
+    //     M23_Translate(BotScreenMtx, tx, ty);
+    //     M23_Translate(HybScreenMtx, tx, ty);
 
-        botTrans[2] += tx; botTrans[3] += ty;
-        hybTrans[0] += tx; hybTrans[1] += ty;
-    }
+    //     botTrans[2] += tx; botTrans[3] += ty;
+    //     hybTrans[0] += tx; hybTrans[1] += ty;
+    // }
 
 
 
@@ -525,6 +519,13 @@ int ScreenLayout::GetScreenTransforms(float* out, int* kind)
     {
         memcpy(out + 6*num, HybScreenMtx, sizeof(HybScreenMtx));
         kind[num++] = HybScreen;
+    }
+    if (QuadEnable)
+    {
+        memcpy(out + 6*num, KanjiMtx, sizeof(KanjiMtx));
+        kind[num++] = 2;
+        memcpy(out + 6*num, TranslationMtx, sizeof(TranslationMtx));
+        kind[num++] = 3;
     }
     return num;
 }
