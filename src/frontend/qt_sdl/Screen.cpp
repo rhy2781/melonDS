@@ -783,10 +783,7 @@ void ScreenPanelNative::setupScreenLayout()
 }
 
 
-// Decode JIS X 0208 to Unicode without a map
 char32_t decodeJISToUnicode(uint16_t jisChar) {
-
-    
     // Ensure jisChar is in the valid range for JIS X 0208
     if (jisChar < 0x2121 || jisChar > 0x7E7E) {
         return U'\uFFFD'; // Invalid JIS, return replacement character
@@ -800,21 +797,21 @@ char32_t decodeJISToUnicode(uint16_t jisChar) {
     row -= 0x21;
     col -= 0x21;
 
+    qDebug() << "Row: " << row << ", Column: " << col;
 
-
-    // Approximate Unicode calculation (example for simplicity)
-    if (row >= 0 && row <= 83) { // Kanji block (most common case)
-        return 0x4E00 + (row * 94 + col); // Base offset for Kanji
-    } else if (row == 1) { // Hiragana block (example)
-        return 0x3040 + col;
-    } else if (row == 2) { // Katakana block (example)
-        return 0x30A0 + col;
+    // Katakana block (row 46 and 47, zero-indexed rows 0x2D and 0x2E)
+    if (row == 0x2D || row == 0x2E) {
+        return 0x30A0 + (row - 0x2D) * 94 + col; // Map to Katakana Unicode range
     }
-
+    // Kanji block (rows 0-83, most common case)
+    else if (row >= 0 && row <= 83) {
+        return 0x4E00 + (row * 94 + col); // Map to Kanji Unicode range
+    }
 
     // Return replacement character if no match found
     return U'\uFFFD';
 }
+
 
 
 int i = 0; // Externaly defined counter for temp
