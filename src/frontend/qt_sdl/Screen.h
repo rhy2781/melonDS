@@ -170,6 +170,7 @@ private:
     QImage screen[4];
     QTransform screenTrans[kMaxScreenTransforms];
 };
+char32_t decodeJISToUnicode(uint16_t jisChar);
 
 
 class ScreenPanelGL : public ScreenPanel

@@ -782,8 +782,42 @@ void ScreenPanelNative::setupScreenLayout()
     }
 }
 
-int i = 0;
 
+// Decode JIS X 0208 to Unicode without a map
+char32_t decodeJISToUnicode(uint16_t jisChar) {
+
+    
+    // Ensure jisChar is in the valid range for JIS X 0208
+    if (jisChar < 0x2121 || jisChar > 0x7E7E) {
+        return U'\uFFFD'; // Invalid JIS, return replacement character
+    }
+
+    // Extract row and column from JIS character
+    uint8_t row = (jisChar >> 8) & 0xFF; // High byte (row)
+    uint8_t col = jisChar & 0xFF;        // Low byte (column)
+
+    // Adjust row and column to zero-based indices
+    row -= 0x21;
+    col -= 0x21;
+
+
+
+    // Approximate Unicode calculation (example for simplicity)
+    if (row >= 0 && row <= 83) { // Kanji block (most common case)
+        return 0x4E00 + (row * 94 + col); // Base offset for Kanji
+    } else if (row == 1) { // Hiragana block (example)
+        return 0x3040 + col;
+    } else if (row == 2) { // Katakana block (example)
+        return 0x30A0 + col;
+    }
+
+
+    // Return replacement character if no match found
+    return U'\uFFFD';
+}
+
+
+int i = 0; // Externaly defined counter for temp
 void ScreenPanelNative::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
@@ -809,14 +843,32 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
 
         memcpy(screen[0].scanLine(0), nds->GPU.Framebuffer[frontbuf][0].get(), 256 * 192 * 4);
         memcpy(screen[1].scanLine(0), nds->GPU.Framebuffer[frontbuf][1].get(), 256 * 192 * 4);
-        
+
+
+        uint32_t address = 0x022D6BB8; // Example address
+        uint32_t data = *reinterpret_cast<uint32_t*>(nds->MainRAM + (address - 0x02000000)); // Adjust address to be relative to MainRAM
+        uint16_t jisChar = static_cast<uint16_t>(data & 0xFFFF); // Extract lower 16 bits for JIS char
+
+        // Decode the JIS character into Unicode
+        char32_t unicodeChar = decodeJISToUnicode(jisChar);
+        qDebug() << "JIS Character: 0x" << QString::number(jisChar, 16).toUpper();
+        qDebug() << "Mapped Unicode: 0x" << QString::number(unicodeChar, 16).toUpper();
+
+
+        // Convert JIS and Unicode to strings for display
+        QString jisHex = QString("JIS: 0x%1").arg(jisChar, 4, 16, QChar('0')).toUpper(); // JIS hex string
+        QString unicodeDisplay = QString("Char: %1").arg(QChar(unicodeChar)); // Display Unicode character
+
+
+
+
         // Create a QImage for the Kanji screen
         QImage kanjiScreen(256, 192, QImage::Format_RGB32);
         QPainter kanjiPainter(&kanjiScreen);
         kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
         kanjiPainter.setPen(Qt::black);
         kanjiPainter.setFont(QFont("Arial", 24));
-        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, QString::fromStdString(std::to_string(i)));
+        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, jisHex);
         i ++;
 
         // Copy the Kanji screen data to the screen buffer
@@ -828,7 +880,7 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         translationPainter.fillRect(screen[3].rect(), Qt::lightGray);
         translationPainter.setPen(Qt::black);
         translationPainter.setFont(QFont("Arial", 24));
-        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, "Translation Screen");
+        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, unicodeDisplay);
 
 
 
