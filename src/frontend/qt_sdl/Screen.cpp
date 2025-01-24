@@ -782,6 +782,8 @@ void ScreenPanelNative::setupScreenLayout()
     }
 }
 
+int i = 0;
+
 void ScreenPanelNative::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
@@ -814,7 +816,8 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
         kanjiPainter.setPen(Qt::black);
         kanjiPainter.setFont(QFont("Arial", 24));
-        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, "Kanji Screen");
+        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, QString::fromStdString(std::to_string(i)));
+        i ++;
 
         // Copy the Kanji screen data to the screen buffer
         memcpy(screen[2].scanLine(0), kanjiScreen.bits(), 256 * 192 * 4);
@@ -826,7 +829,6 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         translationPainter.setPen(Qt::black);
         translationPainter.setFont(QFont("Arial", 24));
         translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, "Translation Screen");
-
 
 
 
