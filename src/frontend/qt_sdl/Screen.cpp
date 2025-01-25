@@ -864,7 +864,7 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         QPainter kanjiPainter(&kanjiScreen);
         kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
         kanjiPainter.setPen(Qt::black);
-        kanjiPainter.setFont(QFont("Arial", 24));
+        kanjiPainter.setFont(QFont("Hiragino Sans", 24));
         kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, jisHex);
         i ++;
 
@@ -877,7 +877,7 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         translationPainter.fillRect(screen[3].rect(), Qt::lightGray);
         translationPainter.setPen(Qt::black);
         translationPainter.setFont(QFont("Arial", 24));
-        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, unicodeDisplay);
+        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, QString(QChar(jisChar)));
 
 
 
