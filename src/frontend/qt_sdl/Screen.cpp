@@ -47,6 +47,7 @@
 #include "OSD_shaders.h"
 #include "font.h"
 #include "version.h"
+#include "ScreenKanjiHandler.h"
 
 using namespace melonDS;
 
@@ -852,32 +853,40 @@ void ScreenPanelNative::paintEvent(QPaintEvent* event)
         qDebug() << "Mapped Unicode: 0x" << QString::number(unicodeChar, 16).toUpper();
 
 
+
+
         // Convert JIS and Unicode to strings for display
+        // JIS is the correc tonl
+
         QString jisHex = QString("JIS: 0x%1").arg(jisChar, 4, 16, QChar('0')).toUpper(); // JIS hex string
         QString unicodeDisplay = QString("Char: %1").arg(QChar(unicodeChar)); // Display Unicode character
-
+        renderKanjiScreen(screen[2], jisHex); // Call the function to render the Kanji screen
 
 
 
         // Create a QImage for the Kanji screen
-        QImage kanjiScreen(256, 192, QImage::Format_RGB32);
-        QPainter kanjiPainter(&kanjiScreen);
-        kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
-        kanjiPainter.setPen(Qt::black);
-        kanjiPainter.setFont(QFont("Hiragino Sans", 24));
-        kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, jisHex);
-        i ++;
+        // QImage kanjiScreen(256, 192, QImage::Format_RGB32);
+        // QPainter kanjiPainter(&kanjiScreen);
+        // kanjiPainter.fillRect(kanjiScreen.rect(), Qt::gray);
+        // kanjiPainter.setPen(Qt::black);
+        // kanjiPainter.setFont(QFont("Hiragino Sans", 24));
+        // kanjiPainter.drawText(kanjiScreen.rect(), Qt::AlignCenter, jisHex);
+        // i ++;
 
         // Copy the Kanji screen data to the screen buffer
-        memcpy(screen[2].scanLine(0), kanjiScreen.bits(), 256 * 192 * 4);
+        // memcpy(screen[2].scanLine(0), kanjiScreen.bits(), 256 * 192 * 4);
 
 
 
-        QPainter translationPainter(&screen[3]);
-        translationPainter.fillRect(screen[3].rect(), Qt::lightGray);
-        translationPainter.setPen(Qt::black);
-        translationPainter.setFont(QFont("Arial", 24));
-        translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, QString(QChar(jisChar)));
+        /**
+         * The jis Char is fine, but we need to render it with the QChar
+         * 
+         */
+        // QPainter translationPainter(&screen[3]);
+        // translationPainter.fillRect(screen[3].rect(), Qt::lightGray);
+        // translationPainter.setPen(Qt::black);
+        // translationPainter.setFont(QFont("Arial", 24));
+        // translationPainter.drawText(screen[3].rect(), Qt::AlignCenter, QString(QChar(jisChar)));
 
 
 

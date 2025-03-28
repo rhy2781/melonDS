@@ -6,6 +6,8 @@ set(SOURCES_QT_SDL
     main.cpp
     main_shaders.h
     Screen.cpp
+    ScreenKanjiHandler.cpp
+
     Window.cpp
     EmuInstance.cpp
     EmuInstanceAudio.cpp

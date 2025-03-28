@@ -1,0 +1,1 @@
+void renderKanjiScreen(QImage& kanjiScreen, const QString& jisHex);
